@@ -5,11 +5,11 @@ OBJS=main.o
 CFLAGS=-Wall -lpthread -lrt -D_FILE_OFFSET_BITS=64
 CC=g++
 INCLUDES=
-LIBS=
+LIBS=-lpthread
 
-all: counter-drf
-counter-dfr: counter-drf.o
-	${CC} ${CFLAGS} ${INCLUDES} -o $@ counter-drf.o ${LIBS}
+all: counter
+counter: counter.o
+	${CC} ${CFLAGS} ${INCLUDES} -o $@ counter.o ${LIBS}
 
 clean:
 	-rm -f *.o core *.core *.gch
