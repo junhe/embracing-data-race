@@ -116,6 +116,7 @@ int main (int argc, char *argv[])
         oss << correct_count;
         perf.put("correct_count", oss.str().c_str());
     }
+    perf.put("num_threads", nthreads);
         
     cout << perf.showColumns();
     pthread_exit(NULL);
