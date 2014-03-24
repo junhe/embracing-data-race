@@ -231,3 +231,32 @@ Performance::put(const char *key, float val)
     oss << val;
     put(key, oss.str().c_str());
 }
+
+
+/* the following two function MUST be used
+ * in pair. Cannot be nested.
+ * start_timer()
+ * DO SOMETHING
+ * duration = end_timer_get_duration()
+ */
+
+void 
+start_timer(struct timeval *start)
+{
+    gettimeofday(start, NULL);
+}
+
+// this function gets the duration
+// from start to the calling time
+double 
+end_timer_get_duration(struct timeval *start)
+{
+    struct timeval end;
+    struct timeval result;
+    gettimeofday(&end, NULL);
+    timersub( &end, start, &result );
+    double duration = result.tv_sec + result.tv_usec/1000000.0;
+    return duration;
+}
+
+

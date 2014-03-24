@@ -44,5 +44,8 @@ class Performance {
         Performance(int colwidth=15);
 };
 
+void start_timer(struct timeval *start);
+double end_timer_get_duration(struct timeval *start);
+
 
 #endif

@@ -19,28 +19,6 @@ using namespace std;
 long long global_counter = 0;
 long long cnt_per_thread = 0; // will be initialized in main()
 
-struct timeval start, end;
-
-/* the following two function MUST be used
- * in pair. Cannot be nested.
- * start_timer()
- * DO SOMETHING
- * duration = end_timer_get_duration()
- */
-void start_timer()
-{
-    gettimeofday(&start, NULL);
-}
-
-double end_timer_get_duration()
-{
-    struct timeval result;
-    gettimeofday(&end, NULL);
-    timersub( &end, &start, &result );
-    double duration = result.tv_sec + result.tv_usec/1000000.0;
-    return duration;
-}
-
 
 void *BusyWork(void *t)
 {
@@ -64,6 +42,7 @@ int main (int argc, char *argv[])
     long t;
     void *status;
     Performance perf;
+    struct timeval start;
 
     if ( argc != 3 ) {
         printf("Usage: %s nthreads cnt_per_thread \n", argv[0]);
@@ -77,7 +56,7 @@ int main (int argc, char *argv[])
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-    start_timer();
+    start_timer(&start);
     for(t=0; t<nthreads; t++) {
         //printf("Main: creating thread %ld\n", t);
         rc = pthread_create(&thread[t], &attr, BusyWork, (void *)t); 
@@ -100,7 +79,7 @@ int main (int argc, char *argv[])
                //"%ld having a status of %ld\n",t,(long)status);
     }
 
-    double dur = end_timer_get_duration();
+    double dur = end_timer_get_duration(&start);
 
     perf.put("duration", dur);
     // hate to use different names for oss
