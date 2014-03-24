@@ -8,8 +8,8 @@ INCLUDES=
 LIBS=-lpthread
 
 all: counter
-counter: counter.o
-	${CC} ${CFLAGS} ${INCLUDES} -o $@ counter.o ${LIBS}
+counter: counter.o Util.o
+	${CC} ${CFLAGS} ${INCLUDES} -o $@ Util.o counter.o ${LIBS}
 
 clean:
 	-rm -f *.o core *.core *.gch
