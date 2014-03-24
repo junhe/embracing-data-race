@@ -18,9 +18,25 @@ using namespace std;
 
 long long global_counter = 0;
 long long cnt_per_thread = 0; // will be initialized in main()
+pthread_mutex_t counter_mutex;
 
 
-void *BusyWork(void *t)
+void *counter_per_thread_DRF(void *t)
+{
+    long long i;
+    //long tid;
+    //double result=0.0;
+    //tid = (long)t;
+    for (i=0; i<cnt_per_thread; i++)
+    {
+        pthread_mutex_lock(&counter_mutex);
+        global_counter++;
+        pthread_mutex_unlock(&counter_mutex);
+    }
+    pthread_exit((void*) t);
+}
+
+void *counter_per_thread_DR(void *t)
 {
     long long i;
     //long tid;
@@ -39,27 +55,36 @@ int main (int argc, char *argv[])
     pthread_attr_t attr;
     int rc;
     int nthreads;
+    int mode;
     long t;
     void *status;
     Performance perf;
     struct timeval start;
 
-    if ( argc != 3 ) {
-        printf("Usage: %s nthreads cnt_per_thread \n", argv[0]);
+    if ( argc != 4 ) {
+        printf("Usage: %s nthreads cnt_per_thread mode \n"
+               "mode: 0-data race, 1-data race free\n", argv[0]);
         exit(1);
     } 
 
     nthreads = atoi(argv[1]);
     cnt_per_thread = atol(argv[2]);
+    mode = atol(argv[3]);
 
     /* Initialize and set thread detached attribute */
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+    pthread_mutex_init(&counter_mutex, NULL);
 
     start_timer(&start);
     for(t=0; t<nthreads; t++) {
-        //printf("Main: creating thread %ld\n", t);
-        rc = pthread_create(&thread[t], &attr, BusyWork, (void *)t); 
+        void *(*routine)(void*);
+        if ( mode == 0 ) {
+            routine = &counter_per_thread_DR;
+        } else {
+            routine = &counter_per_thread_DRF;
+        }
+        rc = pthread_create(&thread[t], &attr, routine, (void *)t); 
         if (rc) {
             printf("ERROR; return code from pthread_create() "
                    " is %d\n", rc);
@@ -98,5 +123,6 @@ int main (int argc, char *argv[])
     perf.put("num_threads", nthreads);
         
     cout << perf.showColumns();
+    pthread_mutex_destroy(&counter_mutex);
     pthread_exit(NULL);
 }
