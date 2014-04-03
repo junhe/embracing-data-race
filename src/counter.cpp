@@ -121,6 +121,16 @@ int main (int argc, char *argv[])
         perf.put("correct_count", oss.str().c_str());
     }
     perf.put("num_threads", nthreads);
+    {
+        ostringstream oss;
+        if ( mode == 0 ) {
+            oss << "DR";
+        } else {
+            oss << "DRF";
+        }
+        perf.put("mode", oss.str().c_str());
+    }
+
         
     cout << perf.showColumns();
     pthread_mutex_destroy(&counter_mutex);
