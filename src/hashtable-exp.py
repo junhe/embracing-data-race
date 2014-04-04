@@ -6,6 +6,7 @@ import pprint
 import sys
 
 
+
 def ParameterCominations(parameter_dict):
     """
     Get all the cominbation of the values from each key
@@ -24,28 +25,27 @@ def ParameterCominations(parameter_dict):
     d = parameter_dict
     return [dict(zip(d, v)) for v in itertools.product(*d.values())]
 
-# nthreads cnt_per_thread mode
+# nthreads tablesize insertions mode
 paras = {
     'nthreads'       :[1,2,4,8,16,32,64,128],
-    'cnt_per_thread' :[10**i for i in range(1,8)],
+    'tablesize'      :[2**i for i in range(20)],
+    'insertions'     :[10**i for i in range(4, 6)],
     'mode'           :[0, 1]
     }
 
 
 paralist = ParameterCominations(paras)
-print len(paralist)
 paralist = paralist * 5
-print len(paralist)
 random.shuffle(paralist) # for the principle of exp design
-print len(paralist)
-exit(0)
 
 headerprinted = False
 for conf in paralist:
-    exe = './counter'
-    cmd = [exe, conf['nthreads'], conf['cnt_per_thread'], conf['mode']]
+    exe = './hashtable'
+    cmd = [exe, conf['nthreads'],   conf['tablesize'], 
+                conf['insertions'], conf['mode']]
     cmd = [str(x) for x in cmd]
     #print cmd
+    sys.stdout.flush()
     #exit(0)
     #subprocess.call(cmd, env=runenv)
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
@@ -57,6 +57,5 @@ for conf in paralist:
             print line,
             headerprinted = True
         sys.stdout.flush()
-
 
 

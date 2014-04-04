@@ -167,20 +167,20 @@ int main(int argc, char *argv[])
     int nthreads;
     int mode;
     int table_size;
-    long insertion_times;
+    long insertions_per_thread;
     long t;
     void * status;
     Performance perf;
     struct timeval start;
 
     if( argc != 5 ){
-        printf("Usage: %s nthreads table_size insertion_times mode \n"
+        printf("Usage: %s nthreads tablesize insertions_per_thread mode \n"
                 "mode: 0-data race, 1-data race free\n", argv[0]);
         exit(1);
     }
     nthreads = atoi(argv[1]);
     table_size = atoi(argv[2]);
-    insertion_times = atol(argv[3]);
+    insertions_per_thread = atol(argv[3]);
     mode = atol(argv[4]);
 
     hash_table_init(table_size);           //call hash table initialization
@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
         }
         ptr[t].thread_id = t;
         ptr[t].table_size = table_size;
-        ptr[t].insertion_num_per_thread = insertion_times/nthreads;
+        ptr[t].insertion_num_per_thread = insertions_per_thread;
         rc = pthread_create(&thread[t], &attr, routine, (void *) (&ptr[t]));
         if (rc) {
             printf("ERROR; return code from pthread_create()"
@@ -232,19 +232,31 @@ int main(int argc, char *argv[])
     {
         ostringstream oss;
         oss << actual_insertion_times(table_size);
-        perf.put("actual.insertion.times", oss.str().c_str());
+        perf.put("actual.insertions", oss.str().c_str());
     }
 
 
     {
         ostringstream oss;
-        oss << insertion_times;
-        perf.put ("correct.insertion.times", oss.str().c_str());
+        oss << insertions_per_thread * nthreads;
+        perf.put("correct.insertions", oss.str().c_str());
     }
 
     perf.put("duration", dur);
     perf.put("num_threads", nthreads);
+    {
+        ostringstream oss;
+        if ( mode == 0 ) {
+            oss << "DR";
+        } else {
+            oss << "DRF";
+        }
+        perf.put("mode", oss.str().c_str());
+    }
+    //printf("Usage: %s nthreads tablesize insertions mode \n"
+    perf.put("tablesize", table_size);
 
+    perf._colwidth = 25;
     cout << perf.showColumns();
     pthread_mutex_destroy(&insert_mutex);
 
