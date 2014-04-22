@@ -25,20 +25,23 @@ def ParameterCominations(parameter_dict):
     return [dict(zip(d, v)) for v in itertools.product(*d.values())]
 
 # nthreads cnt_per_thread mode
+a = 1000
+b = 5000
+length = 100
 paras = {
-    'nthreads'       :[1,2,4,8,16,32,64,128],
-    'cnt_per_thread' :[10**i for i in range(1,8)],
+    'nthreads'       :[1,2,4,8],
+    'cnt_per_thread' :range(a, b, (b-a)/100),
     'mode'           :[0, 1]
     }
 
 
 paralist = ParameterCominations(paras)
-print len(paralist)
-paralist = paralist * 5
-print len(paralist)
+#print len(paralist)
+paralist = paralist * 8 
+#print len(paralist)
 random.shuffle(paralist) # for the principle of exp design
-print len(paralist)
-exit(0)
+#print len(paralist)
+#exit(0)
 
 headerprinted = False
 for conf in paralist:
