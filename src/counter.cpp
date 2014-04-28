@@ -20,13 +20,19 @@ long long global_counter = 0;
 long long cnt_per_thread = 0; // will be initialized in main()
 pthread_mutex_t counter_mutex;
 
+long long delay_factor;
 
 void *counter_per_thread_DRF(void *t)
 {
     long long i;
+    //long long delay;
     //long tid;
-    //double result=0.0;
+    
+    //We are baseline, we don't need delay
     //tid = (long)t;
+    //delay = delay_factor * tid;
+    //for (i=0; i<delay; i++);
+
     for (i=0; i<cnt_per_thread; i++)
     {
         pthread_mutex_lock(&counter_mutex);
@@ -36,12 +42,37 @@ void *counter_per_thread_DRF(void *t)
     pthread_exit((void*) t);
 }
 
+void *counter_per_thread_DRF_coarselock(void *t)
+{
+    long long i;
+    //long long delay;
+    //long tid;
+    
+    //We are baseline, we don't need delay
+    //tid = (long)t;
+    //delay = delay_factor * tid;
+    //for (i=0; i<delay; i++);
+
+    pthread_mutex_lock(&counter_mutex);
+    for (i=0; i<cnt_per_thread; i++)
+    {
+        global_counter++;
+    }
+    pthread_mutex_unlock(&counter_mutex);
+    pthread_exit((void*) t);
+}
+
+
 void *counter_per_thread_DR(void *t)
 {
     long long i;
-    //long tid;
-    //double result=0.0;
-    //tid = (long)t;
+    long long delay;
+    long tid;
+    
+    tid = (long)t;
+    delay = delay_factor * tid;
+    for (i=0; i<delay; i++);
+
     for (i=0; i<cnt_per_thread; i++)
     {
         global_counter++;
@@ -61,8 +92,8 @@ int main (int argc, char *argv[])
     Performance perf;
     struct timeval start;
 
-    if ( argc != 4 ) {
-        printf("Usage: %s nthreads cnt_per_thread mode \n"
+    if ( argc != 5 ) {
+        printf("Usage: %s nthreads cnt_per_thread mode delay_factor \n"
                "mode: 0-data race, 1-data race free\n", argv[0]);
         exit(1);
     } 
@@ -70,6 +101,7 @@ int main (int argc, char *argv[])
     nthreads = atoi(argv[1]);
     cnt_per_thread = atol(argv[2]);
     mode = atol(argv[3]);
+    delay_factor = atol(argv[4]);
 
     /* Initialize and set thread detached attribute */
     pthread_attr_init(&attr);
@@ -81,8 +113,10 @@ int main (int argc, char *argv[])
         void *(*routine)(void*);
         if ( mode == 0 ) {
             routine = &counter_per_thread_DR;
-        } else {
+        } else if ( mode == 1 ) {
             routine = &counter_per_thread_DRF;
+        } else if ( mode == 2 ) {
+            routine = &counter_per_thread_DRF_coarselock;
         }
         rc = pthread_create(&thread[t], &attr, routine, (void *)t); 
         if (rc) {
@@ -125,10 +159,17 @@ int main (int argc, char *argv[])
         ostringstream oss;
         if ( mode == 0 ) {
             oss << "DR";
-        } else {
+        } else if ( mode == 1 ) {
             oss << "DRF";
+        } else if ( mode == 2 ) {
+            oss << "DRF_COARSE";
         }
         perf.put("mode", oss.str().c_str());
+    }
+    {
+        ostringstream oss;
+        oss << delay_factor;
+        perf.put("delay_factor", oss.str().c_str());
     }
 
         

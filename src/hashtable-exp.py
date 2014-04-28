@@ -27,9 +27,9 @@ def ParameterCominations(parameter_dict):
 
 # nthreads tablesize insertions mode
 paras = {
-    'nthreads'       :[1,2,4,8,16,32,64,128],
+    'nthreads'       :[1,2,4,8],
     'tablesize'      :[2**i for i in range(20)],
-    'insertions'     :[10**i for i in range(4, 6)],
+    'insertions'     :[10**i for i in range(4, 5)],
     'mode'           :[0, 1]
     }
 
