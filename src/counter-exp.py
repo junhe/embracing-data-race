@@ -31,8 +31,8 @@ length = 10
 paras = {
     'nthreads'       :[1,2,4,8],
     'cnt_per_thread' :range(a, b, (b-a)/length),
-    'mode'           :[0, 1],
-    'delay_factor'   :[0] + [10**i for i in range(0,6)],
+    'mode'           :[0, 1, 3, 4],
+    'delay_factor'   :[0], # + [10**i for i in range(0,6)],
     'intra_delay'    :[0]
     }
 
@@ -46,7 +46,7 @@ paras = {
 
 paralist = ParameterCominations(paras)
 #print len(paralist)
-paralist = paralist * 16
+paralist = paralist * 10
 #print len(paralist)
 random.shuffle(paralist) # for the principle of exp design
 #print len(paralist)

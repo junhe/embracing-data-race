@@ -23,6 +23,71 @@ pthread_mutex_t counter_mutex;
 long long delay_factor;
 long long intra_delay;
 
+int global_lock = 0;
+volatile int vglobal_lock = 0;
+
+int non_atomic_TAS(int * x)
+{
+    int tmp;
+    tmp = *x;
+    *x = 1;
+    return tmp;
+}
+
+void acquire_lock_non_atomic(int *lock)
+{
+    while ( ! non_atomic_TAS(lock) );
+}
+
+void release_lock_non_atomic(int *lock)
+{
+    *lock = 0;
+}
+
+int non_atomic_TAS_v(int volatile * x)
+{
+    int tmp;
+    tmp = *x;
+    *x = 1;
+    return tmp;
+}
+
+void acquire_lock_non_atomic_v(int volatile *lock)
+{
+    while ( ! non_atomic_TAS_v(lock) );
+}
+
+void release_lock_non_atomic_v(int volatile *lock)
+{
+    *lock = 0;
+}
+
+void *counter_per_thread_badlock(void *t)
+{
+    long long i;
+
+    for (i=0; i<cnt_per_thread; i++)
+    {
+        acquire_lock_non_atomic(&global_lock);
+        global_counter++;
+        release_lock_non_atomic(&global_lock);
+    }
+    pthread_exit((void*) t);
+}
+
+void *counter_per_thread_badlock_volatile(void *t)
+{
+    long long i;
+
+    for (i=0; i<cnt_per_thread; i++)
+    {
+        acquire_lock_non_atomic_v(&vglobal_lock);
+        global_counter++;
+        release_lock_non_atomic_v(&vglobal_lock);
+    }
+    pthread_exit((void*) t);
+}
+
 void *counter_per_thread_DRF(void *t)
 {
     long long i;
@@ -121,6 +186,10 @@ int main (int argc, char *argv[])
             routine = &counter_per_thread_DRF;
         } else if ( mode == 2 ) {
             routine = &counter_per_thread_DRF_coarselock;
+        } else if ( mode == 3 ) {
+            routine = &counter_per_thread_badlock;
+        } else if ( mode == 4 ) {
+            routine = &counter_per_thread_badlock_volatile;
         }
         rc = pthread_create(&thread[t], &attr, routine, (void *)t); 
         if (rc) {
@@ -167,6 +236,10 @@ int main (int argc, char *argv[])
             oss << "DRF";
         } else if ( mode == 2 ) {
             oss << "DRF_COARSE";
+        } else if ( mode == 3 ) {
+            oss << "badlock";
+        } else if ( mode == 4 ) {
+            oss << "badlock_volatile";
         }
         perf.put("mode", oss.str().c_str());
     }
