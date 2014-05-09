@@ -235,7 +235,11 @@ int main(int argc, char *argv[])
         perf.put("actual.insertions", oss.str().c_str());
     }
 
-
+    {
+        ostringstream oss;
+        oss << insertions_per_thread;
+        perf.put("insertions.per.thread", oss.str().c_str());
+    }
     {
         ostringstream oss;
         oss << insertions_per_thread * nthreads;

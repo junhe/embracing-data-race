@@ -21,6 +21,7 @@ long long cnt_per_thread = 0; // will be initialized in main()
 pthread_mutex_t counter_mutex;
 
 long long delay_factor;
+long long intra_delay;
 
 void *counter_per_thread_DRF(void *t)
 {
@@ -66,6 +67,7 @@ void *counter_per_thread_DRF_coarselock(void *t)
 void *counter_per_thread_DR(void *t)
 {
     long long i;
+    //long long j;
     long long delay;
     long tid;
     
@@ -75,6 +77,7 @@ void *counter_per_thread_DR(void *t)
 
     for (i=0; i<cnt_per_thread; i++)
     {
+        //for (j=0; j<intra_delay; j++);
         global_counter++;
     }
     pthread_exit((void*) t);
@@ -92,8 +95,8 @@ int main (int argc, char *argv[])
     Performance perf;
     struct timeval start;
 
-    if ( argc != 5 ) {
-        printf("Usage: %s nthreads cnt_per_thread mode delay_factor \n"
+    if ( argc != 6 ) {
+        printf("Usage: %s nthreads cnt_per_thread mode delay_factor intra_delay \n"
                "mode: 0-data race, 1-data race free\n", argv[0]);
         exit(1);
     } 
@@ -102,6 +105,7 @@ int main (int argc, char *argv[])
     cnt_per_thread = atol(argv[2]);
     mode = atol(argv[3]);
     delay_factor = atol(argv[4]);
+    intra_delay = atol(argv[5]);
 
     /* Initialize and set thread detached attribute */
     pthread_attr_init(&attr);
@@ -171,7 +175,11 @@ int main (int argc, char *argv[])
         oss << delay_factor;
         perf.put("delay_factor", oss.str().c_str());
     }
-
+    {
+        ostringstream oss;
+        oss << intra_delay;
+        perf.put("intra_delay", oss.str().c_str());
+    }
         
     cout << perf.showColumns();
     pthread_mutex_destroy(&counter_mutex);

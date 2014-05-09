@@ -25,26 +25,28 @@ def ParameterCominations(parameter_dict):
     return [dict(zip(d, v)) for v in itertools.product(*d.values())]
 
 # nthreads cnt_per_thread mode
-#a = 1000
-#b = 5000
-#length = 10
-#paras = {
-    #'nthreads'       :[1,2,4,8],
-    #'cnt_per_thread' :range(a, b, (b-a)/length),
-    #'mode'           :[0, 1],
-    #'delay_factor'   :[0] + [10**i for i in range(0,6)]
-    #}
-
+a = 1000
+b = 10000
+length = 10
 paras = {
-    'nthreads'       :[4],
-    'cnt_per_thread' :[3000],
-    'mode'           :[0, 1, 2],
-    'delay_factor'   :[0] + range(1000, 6001, 1000)
+    'nthreads'       :[1,2,4,8],
+    'cnt_per_thread' :range(a, b, (b-a)/length),
+    'mode'           :[0, 1],
+    'delay_factor'   :[0] + [10**i for i in range(0,6)],
+    'intra_delay'    :[0]
     }
+
+#paras = {
+    #'nthreads'       :[1, 2, 4, 8],
+    #'cnt_per_thread' :range(1000, 10000, 1000),
+    #'mode'           :[0, 1],
+    #'delay_factor'   :[0],
+    #'intra_delay'    :[0]
+    #}
 
 paralist = ParameterCominations(paras)
 #print len(paralist)
-paralist = paralist * 1000 
+paralist = paralist * 16
 #print len(paralist)
 random.shuffle(paralist) # for the principle of exp design
 #print len(paralist)
@@ -56,7 +58,8 @@ for conf in paralist:
     cmd = [exe, conf['nthreads'], 
                 conf['cnt_per_thread'], 
                 conf['mode'],
-                conf['delay_factor']
+                conf['delay_factor'],
+                conf['intra_delay']
                 ]
     cmd = [str(x) for x in cmd]
     #print cmd
